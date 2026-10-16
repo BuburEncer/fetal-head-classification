@@ -1,0 +1,11 @@
+{
+  "id": "ibnuqayyim/fetal-head-plane-classification-resnet50",
+  "title": "Fetal Head Plane Classification with ResNet50",
+  "code_file": "fetal-head-classification.ipynb",
+  "language": "python",
+  "kernel_type": "notebook",
+  "is_private": true,
+  "enable_gpu": true,
+  "enable_internet": true,
+  "dataset_sources": ["ibnuqayyim/raw-data"]
+}
