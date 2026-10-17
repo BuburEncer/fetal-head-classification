@@ -1,5 +1,9 @@
 # dataset mentah (901MB) — push sebagai Kaggle dataset, bukan git
 raw_data/
 
-# metadata kernel Kaggle (punya user, lokal saja)
+# metadata kernel & dataset Kaggle (punya user, lokal saja)
 kernel-metadata.json
+dataset-metadata.json
+
+# zip upload dataset sementara
+raw_data.zip
