@@ -1,73 +1,73 @@
-# Fetal Head Plane Classification — ResNet50
+# Fetal Head Plane Classification with ResNet50
 
-Klasifikasi plane kepala janin pada citra ultrasound (USG) menggunakan transfer learning **ResNet50** dengan **Grad-CAM** untuk explainable AI.
+Classifies fetal head planes in ultrasound images using ResNet50 transfer learning, with Grad-CAM for explainability.
 
-## Ringkasan
+## Summary
 
-| Metrik | Nilai |
+| Metric | Value |
 |---|---|
-| **Accuracy (test)** | **0.83** |
+| Accuracy (test) | 0.83 |
 | Weighted F1 | 0.83 |
-| Best Val Accuracy | 0.8525 (epoch 34) |
+| Best val accuracy | 0.8525 (epoch 34) |
 | Split | 70% train / 15% val / 15% test (seed 42) |
-| Total gambar | 2,845 (1986 train) |
+| Total images | 2,845 (1,986 train) |
 
 ## Dataset
 
-3 kelas plane USG kepala janin:
+Three fetal head ultrasound planes:
 
-| Kelas | Train | Val | Test |
+| Class | Train | Val | Test |
 |---|---|---|---|
 | Transcerebellar | 478 | 103 | 103 |
 | Transthalamic | 1095 | 235 | 235 |
 | Transventricular | 413 | 89 | 89 |
 
-Dataset imbalanced (transthalamic dominan). Ditangani dengan **WeightedRandomSampler** + **smoothed class weights** (sqrt-normalized).
+The dataset is imbalanced, with transthalamic as the majority class. Training uses a `WeightedRandomSampler` and smoothed class weights (sqrt-normalized) to compensate.
 
-## Metrik per kelas (test set, 427 gambar)
+## Per-class metrics (test set, 427 images)
 
-| Kelas | Precision | Recall | F1 |
+| Class | Precision | Recall | F1 |
 |---|---|---|---|
-| Transcerebellar | 0.86 | 0.91 | **0.89** |
-| Transthalamic | 0.88 | 0.81 | **0.84** |
-| Transventricular | 0.70 | 0.80 | **0.74** |
+| Transcerebellar | 0.86 | 0.91 | 0.89 |
+| Transthalamic | 0.88 | 0.81 | 0.84 |
+| Transventricular | 0.70 | 0.80 | 0.74 |
 
-Kelas transthalamic paling handal; transventricular paling lemah (precision 0.70) — pola umum karena overlap visual antar plane.
+Transventricular is the weakest class (precision 0.70), which is common because the planes overlap visually.
 
 ## Model
 
-- **Backbone:** ResNet50 pretrained ImageNet
-- **Transfer learning:** freeze semua layer, unfreeze `layer3` + `layer4`
-- **Head:** `Dropout(0.4) → FC(256) → ReLU → Dropout(0.3) → FC(3)`
-- **Augmentasi (train):** flip horizontal/vertikal, rotasi 20°, color jitter, grayscale → to grayscale 3-channel
-- **Loss:** CrossEntropyLoss berbobot kelas
-- **Optimizer:** Adam, lr=1e-4, StepLR (step 5, gamma 0.5)
-- **Early stopping:** patience 7, max 40 epoch (berhenti di epoch 34)
-- **Input:** 224×224
+- Backbone: ResNet50 pretrained on ImageNet
+- Transfer learning: all layers frozen except `layer3` and `layer4`
+- Head: `Dropout(0.4) → FC(256) → ReLU → Dropout(0.3) → FC(3)`
+- Train augmentation: horizontal/vertical flip, 20° rotation, color jitter, conversion to 3-channel grayscale
+- Loss: class-weighted `CrossEntropyLoss`
+- Optimizer: Adam, lr=1e-4, StepLR (step 5, gamma 0.5)
+- Early stopping: patience 7, max 40 epochs (stopped at epoch 34)
+- Input size: 224×224
 
-## XAI — Grad-CAM
+## Explainability with Grad-CAM
 
-Grad-CAM memvisualisasikan area citra yang paling memengaruhi keputusan prediksi per kelas, memetakan aktivasi `layer4[-1]` ke heatmap. Implementasi lokal (tanpa dependency eksternal, jalan di lingkungan internet-off seperti Kaggle).
+Grad-CAM maps activations from `layer4[-1]` to a heatmap showing which image regions drove each prediction. The implementation is bundled locally with no external dependency, so it runs in internet-off environments such as Kaggle.
 
 Output: `outputs/gradcam_result.png`
 
-## Evaluasi hasil
+## Results
 
-- Training accuracy ↗ 0.96, val ~0.84 di akhir — overfit ringan (gap ±0.12) meski ada dropout + augmentasi.
-- Test accuracy **0.83**, weighted F1 0.83.
-- Cross-val konsisten: v7 test 0.84, v8 test 0.83 → model stabil, bukan artefak satu split.
+- Training accuracy reaches about 0.96 while validation ends near 0.84. The gap of roughly 0.12 points to mild overfitting despite dropout and augmentation.
+- Test accuracy is 0.83 with weighted F1 of 0.83.
+- Results are consistent across runs: v7 scored 0.84 on test and v8 scored 0.83, so the score does not depend on a single lucky split.
 
-## Reproduksi
+## Reproducing
 
-Notebook siap di Kaggle GPU. Requirement sudah di-bundle (Grad-CAM lokal, tidak butuh internet untuk install).
+The notebook is ready to run on a Kaggle GPU. Grad-CAM is bundled, so no internet is needed to install requirements.
 
 ```bash
 kaggle kernels push -p .
 ```
 
-## Struktur file
+## Files
 
-- `fetal-head-classification.ipynb` — notebook lengkap (train, eval, Grad-CAM)
-- `kernel-metadata.json` — konfigurasi push Kaggle
-- `raw_data/` — dataset mentah (3 folder kelas)
-- `outputs/` — plot hasil ditulis saat run
+- `fetal-head-classification.ipynb`: full notebook (training, evaluation, Grad-CAM)
+- `kernel-metadata.json`: Kaggle push configuration
+- `raw_data/`: raw dataset (one folder per class)
+- `outputs/`: plots written during the run
